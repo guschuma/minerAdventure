@@ -2,11 +2,12 @@
 #include "global.h"
 #include "raymath.h"
 #include "enemy.h"
+#include "scenes.h"
 //@TODO: Deletar stdio
 #include <stdio.h>
 #include <math.h>
 
-#define PLAYER_HEALTH 3
+
 #define PLAYER_VELOCITY (80 * UNITS_PER_PIXEL)  		// pixeis por segundo
 #define MAX_PLAYER_VELOCITY (100 * UNITS_PER_PIXEL)   	// pixeis por segundo
 #define PLAYER_ACCEL (10 * UNITS_PER_PIXEL )     		// pixeis por segundo^2
@@ -21,13 +22,13 @@
 
 #define FRICTION_IN_AIR 0.92 		// Closer to 1 = quicker movement in air
 #define FRICTION_IN_GROUND 0.85 	// Closer to 1 = quicker movement in ground
-#define MAX_VELOCITY_AIR_HORIZ (120 * UNITS_PER_PIXEL * DT)
-#define MAX_VELOCITY_AIR_VERT (170 * UNITS_PER_PIXEL * DT)
+#define MAX_VELOCITY_AIR_HORIZ (120 * UNITS_PER_PIXEL)
+#define MAX_VELOCITY_AIR_VERT (170 * UNITS_PER_PIXEL)
 
 #define DASH_DELAY 0.25	
 
 #define ANIMATION_WALK_DELAY 0.07   // Amount of time to wait for next frame of animation
-#define INVICIBILITY_TIME (3.0)
+#define INVICIBILITY_TIME (2.0)
 #define PLAYER_DAMAGE_ANIMATION_TIME (0.5)
 
 #define HOOK_SIZE (3 * UNITS_PER_PIXEL)
@@ -40,6 +41,7 @@ ProjectileObject hook;
 
 Texture2D player_running_sprites;
 Texture2D player_jumping_sprites;
+Texture2D player_life_sprite;
 bool is_moving = false;
 
 double last_walk_animation_update = 0.0;
@@ -47,36 +49,41 @@ double last_time_on_ground = 0.0;
 char frame_index = 0; // index of walking animation
 double last_time_since_was_hit_animation;
 
-double last_time_dashed = 0.0, time_entered_dash_delay = 0.0;
+double time_entered_dash_delay = 0.0;
 bool can_dash = true, on_dash_delay = false;
 
 
 void init_player(void) {
 	player.velocity = PLAYER_VELOCITY * DT;
 	player.body.velocity_vector = (Vector2){0, 0};
-	player.is_grounded = false;
+	player.is_grounded = true;
 	player.body.hitbox.width = PLAYER_W;
 	player.body.hitbox.height = PLAYER_H;
 	player.direction = RIGHT;
 	player.tint = WHITE;
 	update_body_position(player_starting_position, &player.body);
+	
 
-	last_walk_animation_update = 0.0;
-	last_time_on_ground = 0.0;
-	last_time_since_was_hit_animation = -INVICIBILITY_TIME;
+	last_walk_animation_update = in_game_time;
+	last_time_on_ground = in_game_time;
+	time_entered_dash_delay = in_game_time - DASH_DELAY;
+	last_time_since_was_hit_animation = in_game_time -INVICIBILITY_TIME;
+	can_dash = true;
+	on_dash_delay = false;
 
 	player.was_hit_animation = false;
-	player.health = PLAYER_HEALTH;
 
 	hook.is_active = false;
 	hook.is_moving = false;
 	hook.body.hitbox = (Rectangle){0, 0, HOOK_SIZE, HOOK_SIZE};
 	hook.velocity = HOOK_VELOCITY * DT;
 }
+
 void player_will_be_allowed_to_dash(){
 	on_dash_delay = true;
-	time_entered_dash_delay = GetTime();
+	time_entered_dash_delay = in_game_time;
 }
+
 float angle_for_hook(Vector2 target_position){
 	float x0 = target_position.x, y0 = -target_position.y;
 	float g = GRAVITY_ACCEL * DT;
@@ -88,19 +95,20 @@ float angle_for_hook(Vector2 target_position){
 }
 
 void init_hook_at(Vector2 init_position){
-	update_body_position(init_position, &hook.body);
+	update_body_position(init_position, &hook.body); // Update position
+	// From here on: Update initial velocity
 	Vector2 mouse_local_position = v_camera_to_global(GetMousePosition());
 	Vector2 hook_position_sub = Vector2Subtract(mouse_local_position, init_position); // Difference between player and hook
 	float init_angle = angle_for_hook(hook_position_sub);
 	if(init_angle == INFINITY){
+		// Just use the direct angle for the initial velocity (Target is unachiveable)
 		hook_position_sub.x -= hook.body.hitbox.width * 0.5;
 		hook_position_sub.y -= hook.body.hitbox.height * 0.5;
 		hook_position_sub = Vector2Normalize(hook_position_sub);
-		printf("Used direct line of sight\n");
 		hook.body.velocity_vector = Vector2Scale(hook_position_sub, hook.velocity); // Make initial velocity of hook that direction
 	}
 	else{
-		printf("Used complex equation!\n");
+		// Use complex equation (considering the arch of the hook) for initial velocity
 		float v = hook.velocity;
 		hook.body.velocity_vector.x = v * cos(init_angle);
 		hook.body.velocity_vector.y = -v * sin(init_angle);
@@ -150,21 +158,21 @@ void draw_hook_textures(){
 	};
 
 	BeginTextureMode(pixelated_screen);
-	ClearBackground(BLANK);
 	Vector2 middle_of_player_rel = v_position_rel_to_camera(middle_of_player);
 	middle_of_player_rel.x *= PIXEL_PER_UNITS / CAMERA_ZOOM_FACTOR;
 	middle_of_player_rel.y *= PIXEL_PER_UNITS /CAMERA_ZOOM_FACTOR;
 	Vector2 hook_rel = v_position_rel_to_camera((Vector2){hook_center.x, hook_center.y});
-	hook_rel.x *= PIXEL_PER_UNITS /CAMERA_ZOOM_FACTOR;
-	hook_rel.y *= PIXEL_PER_UNITS /CAMERA_ZOOM_FACTOR;
+	hook_rel.x *= PIXEL_PER_UNITS / CAMERA_ZOOM_FACTOR;
+	hook_rel.y *= PIXEL_PER_UNITS / CAMERA_ZOOM_FACTOR;
 	// 0.5 para arredondamento, -1 para quadrado 3x3 ter centro no meio
-	DrawRectangleRec((Rectangle){hook_rel.x + 0.5 - 2, hook_rel.y + 0.5 - 2, 3, 3}, GPINK);
-	if(IsMouseButtonDown(MOUSE_BUTTON_LEFT) || IsMouseButtonDown(MOUSE_BUTTON_RIGHT)){
+	DrawRectangleRec((Rectangle){hook_rel.x + 0.5 - 2, hook_rel.y + 0.5 - 2, 3, 3}, GBLUE);
+	bool is_player_clicking = IsMouseButtonDown(MOUSE_BUTTON_LEFT) || IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
+	if(is_player_clicking){
 		DrawLineEx(
 			middle_of_player_rel,
 			hook_rel,
 			1,
-			CYAN_BLUE
+			GPURPLE
 		);
 	}
 	EndTextureMode();
@@ -173,7 +181,7 @@ void update_player_position(){
 	Vector2 current_velocity = player.body.velocity_vector;
 	is_moving = false;
 	// Update dash related features -=-
-	if(GetTime() - time_entered_dash_delay > DASH_DELAY && on_dash_delay){
+	if(in_game_time - time_entered_dash_delay > DASH_DELAY && on_dash_delay){
 		can_dash = true;
 		on_dash_delay = false;
 	}
@@ -185,6 +193,9 @@ void update_player_position(){
 		current_velocity.y -= player.velocity * JUMP_FORCE; // -
 		player.body.position.y -= 2; // Offset um pouco para cima para evitar colisao
 		player.is_grounded = false;
+		
+
+		if(CheckCollisionRecs(player.body.hitbox, end_elevator_rec)) exit_level_cutscene();
 	}
 	if(isPressed(LEFTK) && !player.was_hit_animation){
 		current_velocity.x -= PLAYER_ACCEL * DT; // -
@@ -198,7 +209,6 @@ void update_player_position(){
 	}
 	if(isPressed(SHIFTK) && can_dash && !player.was_hit_animation){
 		// Dash movement!
-		last_time_dashed = GetTime();
 		can_dash = false;
 		on_dash_delay = false;
 		if(player.direction == RIGHT && is_moving) current_velocity.x += player.velocity * HORIZONTAL_DASH_FORCE;
@@ -211,21 +221,13 @@ void update_player_position(){
 		}
 		else current_velocity.y = -player.velocity * LITTLE_DASH_FORCE;
 	}
-	#ifdef DEBUG_ACTIVE
-	if(IsKeyPressed(KEY_R)){
-		restart_enemies();
-		init_map();
-		init_player();
-		restart_projectiles();
-	}
-	#endif
 	if(fabsf(current_velocity.x) > player.velocity && player.is_grounded){ 
 		current_velocity.x *= FRICTION_IN_GROUND;
 	}
-	else if((fabsf(current_velocity.x) > MAX_VELOCITY_AIR_HORIZ) && !player.is_grounded){
+	else if((fabsf(current_velocity.x) > MAX_VELOCITY_AIR_HORIZ * DT) && !player.is_grounded){
 		current_velocity.x *= FRICTION_IN_AIR;
 	}
-	if(fabsf(current_velocity.y) > MAX_VELOCITY_AIR_VERT){
+	if(fabsf(current_velocity.y) > MAX_VELOCITY_AIR_VERT * DT){
 		current_velocity.y *= FRICTION_IN_AIR;
 	}
 	if(!is_moving) {
@@ -238,7 +240,6 @@ void update_player_position(){
 	// -=-=-=-=-=-=-=-=-=-=-=- Hook feature!!! -=-=-=-=-=--=-=-=-=-=-=-
 
 	current_velocity = calculate_player_hook_velocity(current_velocity);
-	draw_hook_textures();
 	// -=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-==-=-=-==-=-=-=-=-=-=-
 	
 	Vector2 new_position;
@@ -250,9 +251,10 @@ void update_player_position(){
 
 int flicker_invincibility = 0;
 void update_player_texture(){
+	if(is_frame_frozen) return;
 	player.tint = (can_dash)? WHITE : (Color){170,170,170,255};
-	if(player.is_grounded) last_time_on_ground = GetTime();
-	if(GetTime() - last_time_since_was_hit_animation < INVICIBILITY_TIME){
+	if(player.is_grounded) last_time_on_ground = in_game_time;
+	if(in_game_time - last_time_since_was_hit_animation < INVICIBILITY_TIME){
 		flicker_invincibility++;
 		flicker_invincibility %= 10;
 		
@@ -262,18 +264,19 @@ void update_player_texture(){
 	}
 	if(player.was_hit_animation){
 		player.was_hit_animation = true;
-		if(GetTime() - last_time_since_was_hit_animation > PLAYER_DAMAGE_ANIMATION_TIME){
+		if(in_game_time - last_time_since_was_hit_animation > PLAYER_DAMAGE_ANIMATION_TIME){
 			player.was_hit_animation = false;
 		}
-		int player_damage_tint = 255 * (GetTime() - last_time_since_was_hit_animation)/PLAYER_DAMAGE_ANIMATION_TIME;
+		int player_damage_tint = 150 + 105 * (in_game_time - last_time_since_was_hit_animation)/PLAYER_DAMAGE_ANIMATION_TIME;
+		score_text_color.g = player_damage_tint * 101 / 255;
 		int player_alpha = player.tint.a;
-		player.tint = (Color){player_damage_tint, 255, 255, player_alpha};
+		player.tint = (Color){255, player_damage_tint, 255, player_alpha};
 		player.texture =  player_jumping_sprites;
 		player.texture_rect = (Rectangle){16, 0, 16, 16};
 	}
 	
 	else if(!player.is_grounded && time_on_air() > 0.1){
-		// Necessary for player to not flicker
+		// Necessary for player to not flicker while on ground
 		player.texture = player_jumping_sprites;
 		if(player.body.velocity_vector.y > 0){ // Jogador caindo
 			player.texture_rect = (Rectangle){16, 0, 16, 16};
@@ -319,6 +322,20 @@ void draw_player(void){
 	# endif
 	
 }
+// Draws life UI
+void draw_lifes(int health){
+	Vector2 first_life_position = (Vector2){0, 0};
+	Rectangle source_rec = (Rectangle){0, 0, 16, 16}; // Size of image sprite
+
+	BeginTextureMode(pixelated_screen);
+	if(health >= 1) DrawTextureRec(player_life_sprite, source_rec, first_life_position, WHITE);
+	first_life_position.x += PIXELS_PER_BLOCK;
+	if(health >= 2) DrawTextureRec(player_life_sprite, source_rec, first_life_position, WHITE);
+	first_life_position.x += PIXELS_PER_BLOCK;
+	if(health >= 3) DrawTextureRec(player_life_sprite, source_rec, first_life_position, WHITE);
+	EndTextureMode();
+
+}
 
 void update_player_collision_enemy(Enemy *e){
 	if(!e->is_active) return;
@@ -342,51 +359,31 @@ void update_player_collision_enemy(Enemy *e){
 }
 void update_player_collision_projectile(ProjectileObject *p, int p_index){
 	if(!p->is_active) return;
+	
 	if(!CheckCollisionRecs(p->body.hitbox, player.body.hitbox)) return;
 	player_was_hit();
 	delete_projectile(p_index);
 }
 
 void player_was_hit(){
-	if(GetTime() - last_time_since_was_hit_animation < INVICIBILITY_TIME) return; // Player was during invicibility time
+	if(in_game_time - last_time_since_was_hit_animation < INVICIBILITY_TIME) return; // Player was during invicibility time
 	player.health--;
-	last_time_since_was_hit_animation = GetTime();
+	score -= 50;
+	last_time_since_was_hit_animation = in_game_time;
 	player.was_hit_animation = true;
-	printf("Player health: %i\n", player.health);
 	if(player.direction == LEFT) player.body.velocity_vector.x += player.velocity;
 	else player.body.velocity_vector.x -= player.velocity;
-
-
-}
-
-bool isPressed(key k){
-	switch(k){
-		case LEFTK:
-		return IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A);
-		case RIGHTK:
-		return IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D);
-		case UPK:
-		return IsKeyDown(KEY_UP) || IsKeyDown(KEY_W) || IsKeyDown(KEY_SPACE);
-		case SHIFTK:
-		return IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT);
-		case DOWNK:
-		return IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S);
-		default:
-		return false;
-	}
 }
 
 // Necessary to wait a bit before triggering jumping animation,
 //otherwise charater flickers on ground
 double time_on_air(){
-	double current_time = GetTime();
-	return current_time - last_time_on_ground;
+	return in_game_time - last_time_on_ground;
 }
 
 bool is_walk_animation_timer_active(){
-	double current_time = GetTime();
-	if(current_time - last_walk_animation_update < ANIMATION_WALK_DELAY) return false; // Time still not active
+	if(in_game_time - last_walk_animation_update < ANIMATION_WALK_DELAY) return false; // Time still not active
 	
-	last_walk_animation_update = current_time;
+	last_walk_animation_update = in_game_time;
 	return true;
 }

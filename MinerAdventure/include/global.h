@@ -3,7 +3,7 @@
 
 //#define USE_GLOBAL_CAMERA
 //#define DRAW_HITBOXES
-#define DEBUG_ACTIVE // Press R to respawn
+//#define DEBUG_ACTIVE // Press R to respawn
 
 #ifdef USE_GLOBAL_CAMERA
 #define CAMERA_ZOOM_FACTOR 1
@@ -25,7 +25,7 @@
 #define BORDER_SIZE_H 1
 
 static float min_f(float a, float b){
-    return (a > b)? b : a;
+	return (a > b)? b : a;
 }
 
 // 480 <- Map size when shown in global camera
@@ -47,16 +47,19 @@ static float min_f(float a, float b){
 #define GLOBAL_CAMERA_OFFSET_W_UNITS (0.5 * (SCREEN_W - MAP_SIZE_IN_UNITS) - BORDER_SIZE_W * UNITS_PER_BLOCK)
 #define GLOBAL_CAMERA_OFFSET_H_UNITS (0.5 * (SCREEN_H - MAP_SIZE_IN_UNITS) - BORDER_SIZE_H * UNITS_PER_BLOCK) 
 
-
-
 extern RenderTexture2D pixelated_screen;
 extern RenderTexture2D pixelated_background;
 extern Texture2D skeleton_sprite;
 extern Texture2D snake_sprite;
 extern Vector2 player_starting_position; // Defined in mapa.c
 
+extern Texture2D player_life_sprite;
 extern Texture2D player_running_sprites;
 extern Texture2D player_jumping_sprites;
+extern Texture2D elevator_up;           // Defined in scenes.c
+extern Texture2D elevator_up_idle;
+extern Texture2D elevator_down;         // Defined in scenes.c
+extern Texture2D elevator_down_idle;    // Defined in scenes.c
 
 extern Texture2D block_sprite;
 
