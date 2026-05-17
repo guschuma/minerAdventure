@@ -2,6 +2,7 @@
 #include "gameObjects.h"
 
 extern int enemy_count;			// Defined in enemy.h
+extern int active_enemy_count;
 extern Enemy enemy_list[MAX_ENEMY_NUMBER];
 
 void restart_enemies();

@@ -2,40 +2,44 @@
 #include "raylib.h"
 #include "global.h"
 #include "mapa.h"
+#include "scenes.h"
 #define DT 1.0/60
 #define GRAVITY_ACCEL (7 * UNITS_PER_PIXEL)      // units por segundo^2    //7 normally
 #define MAX_ENEMY_NUMBER 20
 #define MAX_PROJECTILE_NUMBER 30
 
+
 typedef enum {LEFT, RIGHT} FacingDirection;
 
 typedef struct {
 	Vector2 position;
-	Rectangle hitbox;            // Hitbox do objeto
-	Vector2 velocity_vector;     // Velocidade do objeto
+	Rectangle hitbox;            	// Hitbox do objeto
+	Vector2 velocity_vector;     	// Velocidade do objeto
 } PhysicsBody;
 
 typedef struct {
 	PhysicsBody body; 
-	Texture2D texture;           // Textura do ser
+	Texture2D texture;           	// Textura do ser
 	Rectangle texture_rect;
-	FacingDirection direction;   // Sentido para qual ser está mirando
-	float velocity;              // Velocidade da caminhada
-	bool is_grounded;			 // True se o ser está encostado no chão
+	FacingDirection direction;   	// Sentido para qual ser está mirando
+	float velocity;              	// Velocidade da caminhada
+	bool is_grounded;			 	// True se o ser está encostado no chão
 	bool was_hit_animation;
 	int health;
 	Color tint;
 } PlayerObject;
-
 extern PlayerObject player;
 
+extern int score;			// Defined in gameObjects.c
+extern Color score_text_color;
 typedef struct {
 	PhysicsBody body;
-	float velocity;              // Velocidade da caminhada
-	bool is_active;				 // Projétil está ativo?
-	bool is_moving;				 // Projétil está se mexendo?
+	float velocity;              	// Velocidade da caminhada
+	bool is_active;				 	// Projétil está ativo?
+	bool is_moving;				 	// Projétil está se mexendo?
 } ProjectileObject;
 extern ProjectileObject hook;
+
 typedef enum {
     ENEMY_SNAKE,
 	ENEMY_SKELETON
@@ -44,9 +48,9 @@ typedef enum {
 typedef struct {
     PhysicsBody body;
     int health;
-    FacingDirection direction;   // Sentido para qual ser está mirando
+    FacingDirection direction;   	// Sentido para qual ser está mirando
     EnemyType type;
-	float velocity;              // Velocidade da caminhada
+	float velocity;              	// Velocidade da caminhada
 	Texture2D texture;
 	Rectangle texture_rect;
 	int animation_index;
@@ -55,11 +59,15 @@ typedef struct {
 	Color enemy_tint;
 } Enemy;
 
-extern int enemy_count;			// Defined in enemy.h
+extern int enemy_count;				// Defined in enemy.h
 extern Enemy enemy_list[MAX_ENEMY_NUMBER];
 
-extern int projectile_count;			// Defined in enemy.h
+extern int projectile_count;		// Defined in enemy.h
 extern ProjectileObject projectile_list[MAX_PROJECTILE_NUMBER];
+
+extern double in_game_time;			// Defined in gameObjects.c
+
+extern Texture2D layer1_menu, layer2_menu, layer3_menu, layer4_menu, layer5_menu, layer6_menu, layer7_menu;
 
 Rectangle position_rel_to_camera(Rectangle global_pos_rec);
 Rectangle camera_to_global(Rectangle relative_pos_rec);
@@ -77,9 +85,17 @@ float to_pixel_grid(float x);
 Vector2 v_to_pixel_grid(Vector2 v);
 // Testa se posicão atual mais a nova velocidade colide com parede em eixo vertical ou horizontal.
 // Se sim, velocidade naquele eixo deve ser zero e retorne a posicão corrigida (colidida com a parede)
-float collision_detect_blocks(float *new_velocity, Axis ax, PhysicsBody *b, bool *hit_ground);
+float collision_detect_blocks(float *new_velocity, Axis ax, PhysicsBody *b, bool *hit_ground, bool *took_damage, bool body_is_player);
+
+void restart_entire_level(void);
 
 void load_textures();
 void load_background();
+void draw_textured_screen(RenderTexture2D render_screen);
 
 void draw_cursor_texture();
+typedef enum {LEFTK, RIGHTK, UPK, DOWNK, SHIFTK} key;
+
+bool isPressed(key k);
+
+void camera_handling(void);

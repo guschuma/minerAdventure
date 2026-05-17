@@ -1,4 +1,5 @@
 #include "enemy.h"
+#include "sounds.h"
 #include <stdio.h>
 #include "raymath.h"
 
@@ -21,6 +22,7 @@
 #define ARROW_VISUAL_LENGTH (7 * UNITS_PER_PIXEL)
 
 int enemy_count = 0;
+int active_enemy_count = 0;
 Enemy enemy_list[MAX_ENEMY_NUMBER] = {0};
 int projectile_count = 0;
 ProjectileObject projectile_list[MAX_PROJECTILE_NUMBER] = {0};
@@ -36,6 +38,7 @@ void restart_enemies(){
 		enemy_list[e_ind] = (Enemy){0};
 	}
 	enemy_count = 0;
+	active_enemy_count = 0;
 }
 void init_enemy(Vector2 global_position, EnemyType type){
 	if(enemy_count >= MAX_ENEMY_NUMBER) return;
@@ -60,7 +63,7 @@ void init_enemy(Vector2 global_position, EnemyType type){
 			new_enemy.velocity = SKELETON_VELOCITY * DT;
 			new_enemy.texture = skeleton_sprite;
 			new_enemy.health = SKELETON_HEALTH;
-			new_enemy.time_since_last_attack = GetTime() - GetRandomValue(0, 1000 * SKELETON_TIME_TO_ATTACK) / 1000.0; // Gets a random value between zero and attack time
+			new_enemy.time_since_last_attack = in_game_time - GetRandomValue(0, 1000 * SKELETON_TIME_TO_ATTACK) / 1000.0; // Gets a random value between zero and attack time
 			break;
 	}
 	new_enemy.direction = LEFT;
@@ -75,10 +78,14 @@ void init_enemy(Vector2 global_position, EnemyType type){
 
 	enemy_list[enemy_count] = new_enemy;
 	enemy_count++;
+	active_enemy_count++;
 }
 
 void update_enemy(Enemy *e){
-	if(e->health <= 0 || e->body.hitbox.y > MAP_SIZE_IN_UNITS) e->is_active = false;
+	if((e->health <= 0 || e->body.hitbox.y > MAP_SIZE_IN_UNITS) && e->is_active) {
+		e->is_active = false;
+		score += 40;
+	}
 	if(!e->is_active) return;
 	Vector2 current_velocity = e->body.velocity_vector;
 
@@ -92,12 +99,10 @@ void update_enemy(Enemy *e){
 	if(current_velocity.y > 3 * e->velocity) current_velocity.y = 3 * e->velocity;
 
 	if(e->type == ENEMY_SKELETON){
-		double current_time = GetTime();
-
-		if(e->is_grounded && (current_time - e->time_since_last_attack > SKELETON_TIME_TO_ATTACK && !e->was_hit)){
+		if(e->is_grounded && (in_game_time - e->time_since_last_attack > SKELETON_TIME_TO_ATTACK && !e->was_hit)){
 			// Skeleton is bouta attack!
-			e->time_since_last_attack = current_time;
-			e->time_since_last_animation = current_time;
+			e->time_since_last_attack = in_game_time;
+			e->time_since_last_animation = in_game_time;
 			e->is_attacking = true;
 			current_velocity.x = 0;
 			e->animation_index = 8;
@@ -108,8 +113,10 @@ void update_enemy(Enemy *e){
 	}
 	if(e->is_attacking) current_velocity.x = 0;
 	Vector2 new_position;
-	new_position.x = collision_detect_blocks(&current_velocity.x, HORIZO, &e->body, &e->is_grounded);
-	new_position.y = collision_detect_blocks(&current_velocity.y, VERTIC, &e->body, &e->is_grounded);
+	bool took_damage = false;
+	new_position.x = collision_detect_blocks(&current_velocity.x, HORIZO, &e->body, &e->is_grounded, &took_damage, false);
+	new_position.y = collision_detect_blocks(&current_velocity.y, VERTIC, &e->body, &e->is_grounded, &took_damage, false);
+	if(took_damage) enemy_was_hit_update(e);
 	if(e->was_previously_grounded && !e->is_grounded && !e->was_hit){
 		if(current_velocity.x < 0) e->direction = RIGHT;
 		else e->direction = LEFT;
@@ -130,25 +137,28 @@ void update_enemy(Enemy *e){
 
 void enemy_was_hit_update(Enemy *e){
 	if(!e->was_hit){ // Enemy was not moments before previously hit
+		play_sound(HIT_ENEMY);
+		score += 20;
 		e->health -= 1;
+		if(e->health == 0) active_enemy_count--;
 		e->was_hit = true;
 		e->body.velocity_vector.y = - player.velocity * 0.5;
 	}
 }
 void update_enemy_texture(Enemy *e){
 	if(!e->is_active) return;
-	double current_time = GetTime();
-	double current_animation_timer = current_time - e->time_since_last_animation;
+	double current_animation_timer = in_game_time - e->time_since_last_animation;
 	int falling_sprite = (e->type == ENEMY_SNAKE)? 2 : 13;
 	if(e->was_hit){
 		e->animation_index = falling_sprite;
 		e->is_attacking = false;
 		int damaged_enemy_tint = 255*(current_animation_timer / ENEMY_DAMAGE_ANIMATION_TIME);
 		Color new_enemy_tint = (Color){damaged_enemy_tint, 255, 255, 255};
+
 		e->enemy_tint = new_enemy_tint;
 		if(current_animation_timer > ENEMY_DAMAGE_ANIMATION_TIME){
 			e->was_hit = false;
-			e->time_since_last_animation = current_time;
+			e->time_since_last_animation = in_game_time;
 			e->enemy_tint = WHITE;
 		}
 		
@@ -156,7 +166,7 @@ void update_enemy_texture(Enemy *e){
 	}
 	else if(!e->is_grounded) {
 		e->animation_index = falling_sprite;
-		e->time_since_last_animation = current_time;
+		e->time_since_last_animation = in_game_time;
 		return;
 	}
 	
@@ -178,16 +188,17 @@ void update_enemy_texture(Enemy *e){
 			else if(e->animation_index == 10) {
 				// Skeleton has attacked!
 				Vector2 middle_of_skeleton = (Vector2){e->body.hitbox.x + e->body.hitbox.width * 0.5, e->body.hitbox.y + e->body.hitbox.height * 0.5};
+				play_sound(BOW_SFX);
 				initialize_arrow(middle_of_skeleton);
 				e->animation_index++;
 			}
 			else e->animation_index++;
 
-			e->time_since_last_animation = current_time;
+			e->time_since_last_animation = in_game_time;
 		}
 	}
-	else if(current_time - e->time_since_last_animation > time_for_animation_change){
-		e->time_since_last_animation = current_time;
+	else if(in_game_time - e->time_since_last_animation > time_for_animation_change){
+		e->time_since_last_animation = in_game_time;
 		
 		
 		switch(e->type){
@@ -211,6 +222,7 @@ void draw_enemy(Enemy *e){
 	};
 	e->texture_rect = (Rectangle){16 * e->animation_index, 0, 16, 16};
 	if(e->direction == RIGHT) e->texture_rect.width *= -1; 
+	
 	DrawTexturePro(e->texture, e->texture_rect, enemy_destination_rect, (Vector2){0, 0}, 0, e->enemy_tint);
 	
 	# ifdef DRAW_HITBOXES
@@ -269,11 +281,13 @@ void delete_projectile(int index){
 	}
 	projectile_list[projectile_count] = (ProjectileObject){0};
 }
+
 void restart_projectiles(){
 	int index = projectile_count;
 	while(index >= 0) delete_projectile(index--);
 	projectile_count = 0;
 }
+
 // Draws projectile_list
 void draw_projectiles(){
 	BeginTextureMode(pixelated_screen);
@@ -317,6 +331,7 @@ void update_enemy_collision_projectile(Enemy *e, ProjectileObject *p, int proj_i
 	if(e->is_attacking && (proj_index != -1)) return; 	// Return if it's not the hook and enemy is attacking
 														// (Skeleton should not damage itself with arrows)
 	if(!e->is_active) return;
+	if(!p->is_moving) return;
 	if(!p->is_active) return;
 	if(!CheckCollisionRecs(e->body.hitbox, p->body.hitbox)) return; 
 	

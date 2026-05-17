@@ -1,28 +1,28 @@
 Z                            Z|
                               |
-                              |
-                              |
-            E                 |
+    ZZZ                       |
+    ZZZ                       |
+    ZZZZZZ  E                 |
 ZZZZZZZZZZZZZZZZZZZ Z Z Z     |
-Z                             |
-Z                             |
-Z                            Z|
-Z                            Z|
-Z                            Z|
-Z                  E   E     Z|
+Z               I             |
+Z               I            Z|
+Z               I            Z|
+Z               I            Z|
+Z               I            Z|
+Z               I  E   E     Z|
 ZZZZZZZZZZZZZZZZZZZZZZZZZ    Z|
-Z                            Z|
-Z                            Z|
-Z    E A         E           Z|
+Z                     I      Z|
+Z                     I     VZ|
+Z    E A   L  F  E    I      Z|
 ZZZZZZZZZZZZZZZZZZZZZZZZ   ZZZ|
 ZZ                        ZZZZ|
 ZZ  P                    ZZZZZ|
-ZZZZZZZZZZ             ZZZZZZZ|
-ZZZ                ZZZZZZZZZZZ|
-ZZZ            A  ZZZZZZZZZZZZ|
-ZZZZZ       ZZZZZZZZZZZZZZZZZZ|
-ZZZ        ZZZZZZZZZZZZZZZZZZZ|
-ZZZ  E     ZZZZZZZZZZZZZZZZZZZ|
+ZZZZZZZZZZV         V  ZZZZZZZ|
+ZZZ  V  I          ZZZZZZZZZZZ|
+ZZZ     I      A  ZZZZZZZZZZZZ|
+ZZZZZ   I   ZZZZZZZZZZZZZZZZZZ|
+ZZZ     I  ZZZZZZZZZZZZZZZZZZZ|
+ZZZ  E  I VZZZZZZZZZZZZZZZZZZZ|
 ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
 ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
 ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
