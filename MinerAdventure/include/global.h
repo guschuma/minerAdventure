@@ -3,7 +3,8 @@
 
 //#define USE_GLOBAL_CAMERA
 //#define DRAW_HITBOXES
-#define DEBUG_ACTIVE // Press R to respawn
+//#define DEBUG_ACTIVE // Press R to respawn
+#define DONT_RESTART_WHEN_DEATH // Useful when debugging
 
 #ifdef USE_GLOBAL_CAMERA
 #define CAMERA_ZOOM_FACTOR 1
@@ -25,7 +26,7 @@
 #define BORDER_SIZE_H 1
 
 static float min_f(float a, float b){
-    return (a > b)? b : a;
+	return (a > b)? b : a;
 }
 
 // 480 <- Map size when shown in global camera
@@ -47,18 +48,31 @@ static float min_f(float a, float b){
 #define GLOBAL_CAMERA_OFFSET_W_UNITS (0.5 * (SCREEN_W - MAP_SIZE_IN_UNITS) - BORDER_SIZE_W * UNITS_PER_BLOCK)
 #define GLOBAL_CAMERA_OFFSET_H_UNITS (0.5 * (SCREEN_H - MAP_SIZE_IN_UNITS) - BORDER_SIZE_H * UNITS_PER_BLOCK) 
 
-
-
 extern RenderTexture2D pixelated_screen;
 extern RenderTexture2D pixelated_background;
 extern Texture2D skeleton_sprite;
 extern Texture2D snake_sprite;
+extern Texture2D bat_sprite;
+extern Texture2D frog_sprite;
 extern Vector2 player_starting_position; // Defined in mapa.c
 
+extern Texture2D player_life_sprite;	// Defined in player.c
 extern Texture2D player_running_sprites;
 extern Texture2D player_jumping_sprites;
+extern Texture2D player_climbing_sprite;
+extern Texture2D elevator_up;           // Defined in scenes.c
+extern Texture2D elevator_up_idle;
+extern Texture2D elevator_up_closed_idle;
+extern Texture2D elevator_down;         // Defined in scenes.c
+extern Texture2D elevator_down_idle;    // Defined in scenes.c
 
 extern Texture2D block_sprite;
+extern Texture2D block_tilemap;
+extern Texture2D wood_pillar;
+extern Texture2D torch_block;
+extern Texture2D world_border;
+extern Texture2D spike_block;
+extern Texture2D ladder_block;
 
 
 typedef enum {HORIZO, VERTIC} Axis;

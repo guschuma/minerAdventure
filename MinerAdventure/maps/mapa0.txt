@@ -1,30 +1,31 @@
-Z                            Z
-                              
-                              
-                              
-                              
-                              
-                              
-                              
-                              
-                              
-                              
-                              
-                              
-                              
-                              
-                              
-                              
-F             D              E
-ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ
-                              
-                              
-                              
-                              
-                              
-                              
-                              
-                              
-                              
-      P       S               
-ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZ   ZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZ F ZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZ   ZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZ P ZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
+ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ|
+------------------------------+
