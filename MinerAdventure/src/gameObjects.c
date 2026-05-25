@@ -2,12 +2,16 @@
 #include "global.h"
 #include <math.h>
 #include "raymath.h"
+#include "enemy.h"
+#include "player.h"
 
 #include <stdio.h>
 #define CAMERA_QUICKNESS 0.2
+double in_game_time = 0;
+int score = 0;
+Color score_text_color;
 // Update BeingObjectPosition
 void update_body_position(Vector2 new_position, PhysicsBody *b){
-	
 	b->hitbox.x =  new_position.x;
 	b->hitbox.y =  new_position.y;
 	b->position.x = new_position.x -= 0.5 * (UNITS_PER_BLOCK - b->hitbox.width);
@@ -18,14 +22,14 @@ void update_projectile_position(ProjectileObject *p, bool has_gravity){ // Veloc
 	if(!(p->is_moving)) return;
 	if(has_gravity) p->body.velocity_vector.y += GRAVITY_ACCEL * DT;
 	Vector2 new_position = (Vector2){p->body.hitbox.x, p->body.hitbox.y};
-	bool is_grounded; // Not utilised
-	new_position.x = collision_detect_blocks(&(p->body.velocity_vector.x), HORIZO, &(p->body), &is_grounded);
+	bool is_grounded, took_damage; // Not utilised
+	new_position.x = collision_detect_blocks(&(p->body.velocity_vector.x), HORIZO, &(p->body), &is_grounded, &took_damage, false);
 	update_body_position(new_position, &(p->body));
 	if(p->body.velocity_vector.x == 0) {
 		p->is_moving = false;
 		return;
 	} 
-	new_position.y = collision_detect_blocks(&(p->body.velocity_vector.y), VERTIC, &(p->body), &is_grounded);
+	new_position.y = collision_detect_blocks(&(p->body.velocity_vector.y), VERTIC, &(p->body), &is_grounded, &took_damage, false);
 	update_body_position(new_position, &(p->body));
 	if(p->body.velocity_vector.y == 0) {
 		p->is_moving = false;
@@ -158,48 +162,66 @@ void move_camera_position_to(Vector2 global_position){
 }
 
 Texture2D bg_layer_1, bg_layer_2, bg_layer_3, bg_layer_4, bg_layer_5, bg_layer_6, bg_layer_7;
+Texture2D load_image_texture(const char *file_name){
+	Image temp_image = LoadImage(file_name);
+	Texture2D sprite = LoadTextureFromImage(temp_image);
+	UnloadImage(temp_image); 
+	return sprite;
+}
+
+void restart_entire_level(void){
+	in_game_time = 0;
+	restart_projectiles();
+	restart_enemies();
+	init_map();
+	init_player();
+	hook.is_active = false;
+}
+
 void load_textures(){
-	Image temp_image = LoadImage("assets/snake.png");
-	snake_sprite = LoadTextureFromImage(temp_image);
-	UnloadImage(temp_image); 
-	
-	temp_image = LoadImage("assets/skeleton.png");
-	skeleton_sprite = LoadTextureFromImage(temp_image);
-	UnloadImage(temp_image); 
+	snake_sprite = load_image_texture("assets/snake.png");
+	skeleton_sprite = load_image_texture("assets/skeleton.png");
+	bat_sprite = load_image_texture("assets/bat.png");
+	frog_sprite = load_image_texture("assets/frog.png");
 
-	temp_image = LoadImage("assets/player_correndo.png");
-	player_running_sprites = LoadTextureFromImage(temp_image);
-	UnloadImage(temp_image); 
+	player_running_sprites = load_image_texture("assets/player_correndo.png");
+	player_climbing_sprite = load_image_texture("assets/player_climbing.png");
+	player_jumping_sprites = load_image_texture("assets/player_pulando.png");
 
-	temp_image = LoadImage("assets/player_pulando.png");
-	player_jumping_sprites = LoadTextureFromImage(temp_image);
-	UnloadImage(temp_image); 
+	player_life_sprite = load_image_texture("assets/player_life.png");
 
-	temp_image = LoadImage("assets/block.png");
-	block_sprite = LoadTextureFromImage(temp_image);
-	UnloadImage(temp_image); 
 
-	temp_image = LoadImage("assets/paralax-layer/layer_1.png");
-	bg_layer_1 = LoadTextureFromImage(temp_image);
-	UnloadImage(temp_image); 
-	temp_image = LoadImage("assets/paralax-layer/layer_2.png");
-	bg_layer_2 = LoadTextureFromImage(temp_image);
-	UnloadImage(temp_image); 
-	temp_image = LoadImage("assets/paralax-layer/layer_3.png");
-	bg_layer_3 = LoadTextureFromImage(temp_image);
-	UnloadImage(temp_image); 
-	temp_image = LoadImage("assets/paralax-layer/layer_4.png");
-	bg_layer_4 = LoadTextureFromImage(temp_image);
-	UnloadImage(temp_image); 
-	temp_image = LoadImage("assets/paralax-layer/layer_5.png");
-	bg_layer_5 = LoadTextureFromImage(temp_image);
-	UnloadImage(temp_image); 
-	temp_image = LoadImage("assets/paralax-layer/layer_6.png");
-	bg_layer_6 = LoadTextureFromImage(temp_image);
-	UnloadImage(temp_image); 
-	temp_image = LoadImage("assets/paralax-layer/layer_7.png");
-	bg_layer_7 = LoadTextureFromImage(temp_image);
-	UnloadImage(temp_image); 
+	block_sprite = load_image_texture("assets/block.png"); 
+	block_tilemap = load_image_texture("assets/tilemap.png");
+	wood_pillar = load_image_texture("assets/wood_pillar.png");
+	torch_block = load_image_texture("assets/torch.png");
+	world_border = load_image_texture("assets/world_border.png");
+	spike_block = load_image_texture("assets/spike_block.png");
+	ladder_block = load_image_texture("assets/ladder.png");
+
+	elevator_up_idle = load_image_texture("assets/elevator_up_idle.png");
+	elevator_up = load_image_texture("assets/elevator_up.png");
+	elevator_down = load_image_texture("assets/elevator_down.png");
+	elevator_down_idle = load_image_texture("assets/elevator_down_idle.png");
+	elevator_up_closed_idle = load_image_texture("assets/elevator_up_closed.png");
+
+	defeat_screen = load_image_texture("assets/defeat_screen.png");
+
+	layer1_menu = load_image_texture("assets/menu-layers/layer1.png");
+	layer2_menu = load_image_texture("assets/menu-layers/layer2.png");
+	layer3_menu = load_image_texture("assets/menu-layers/layer3.png");
+	layer4_menu = load_image_texture("assets/menu-layers/layer4.png");
+	layer5_menu = load_image_texture("assets/menu-layers/layer5.png");
+	layer6_menu = load_image_texture("assets/menu-layers/layer6.png");
+	layer7_menu = load_image_texture("assets/menu-layers/layer7.png");
+
+	bg_layer_1 = load_image_texture("assets/paralax-layer/layer_1.png");
+	bg_layer_2 = load_image_texture("assets/paralax-layer/layer_2.png");
+	bg_layer_3 = load_image_texture("assets/paralax-layer/layer_3.png");
+	bg_layer_4 = load_image_texture("assets/paralax-layer/layer_4.png");
+	bg_layer_5 = load_image_texture("assets/paralax-layer/layer_5.png");
+	bg_layer_6 = load_image_texture("assets/paralax-layer/layer_6.png");
+	bg_layer_7 = load_image_texture("assets/paralax-layer/layer_7.png");
 
 }
 Rectangle draw_offset_bg_layer(Texture2D layer_texture, float scalar){
@@ -270,6 +292,31 @@ void load_background(){
 	EndTextureMode();
 }
 
+void draw_textured_screen(RenderTexture2D render_screen, bool semitransparent){
+	Color color = WHITE;
+	if(semitransparent) {
+	BeginBlendMode(BLEND_MULTIPLIED);
+	}
+	
+	DrawTexturePro(
+		render_screen.texture,
+		(Rectangle){0,
+				0,
+				render_screen.texture.width,
+				-render_screen.texture.height},
+		(Rectangle){0,
+					0,
+					SCREEN_W,
+					SCREEN_H},
+		(Vector2){0, 0},
+		0.0f,
+		color
+	);
+
+	if(semitransparent) {
+	EndBlendMode();
+	}
+}
 
 float max_value(float a, float b){
 	return (a > b)? a : b;
@@ -282,4 +329,36 @@ void draw_cursor_texture(){
 	float circle_cursor_radius = (IsMouseButtonDown(MOUSE_BUTTON_LEFT) || IsMouseButtonDown(MOUSE_BUTTON_RIGHT))? 2: 1;
 	DrawCircleLines(mousePosition.x + 0.5, mousePosition.y + 0.5, circle_cursor_radius, GPINK);
 	EndTextureMode();
+}
+
+bool isPressed(key k){
+	switch(k){
+		case LEFTK:
+		return IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A);
+		case RIGHTK:
+		return IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D);
+		case UPK:
+		return IsKeyDown(KEY_UP) || IsKeyDown(KEY_W) || IsKeyDown(KEY_SPACE);
+		case SHIFTK:
+		return IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT);
+		case DOWNK:
+		return IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S);
+		default:
+		return false;
+	}
+}
+
+void camera_handling(void){
+	Vector2 centralized_player_position = {
+		player.body.hitbox.x + player.body.hitbox.width * 0.5,
+		player.body.hitbox.y + player.body.hitbox.height * 0.5,
+	};
+
+	if(player.direction == LEFT) centralized_player_position.x -= 1*UNITS_PER_BLOCK;
+	else centralized_player_position.x += 1*UNITS_PER_BLOCK;
+	centralized_player_position.y -= 1*UNITS_PER_BLOCK;
+	Vector2 global_mouse = v_camera_to_global(GetMousePosition());
+	centralized_player_position = Vector2Lerp(centralized_player_position, global_mouse, 0.25);
+	centralized_player_position = v_to_pixel_grid(centralized_player_position);
+	move_camera_position_to(centralized_player_position);
 }

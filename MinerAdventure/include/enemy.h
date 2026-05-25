@@ -2,6 +2,7 @@
 #include "gameObjects.h"
 
 extern int enemy_count;			// Defined in enemy.h
+extern int active_enemy_count;
 extern Enemy enemy_list[MAX_ENEMY_NUMBER];
 
 void restart_enemies();
@@ -16,5 +17,5 @@ void update_projectile_positions();
 void delete_projectile(int index);
 void restart_projectiles();
 
-void enemy_was_hit_update(Enemy *e);
+void enemy_was_hit_update(Enemy *e, Vector2 *current_velocity);
 void update_enemy_collision_projectile(Enemy *e, ProjectileObject *p, int proj_index);
