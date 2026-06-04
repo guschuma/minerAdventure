@@ -3,8 +3,8 @@
 #include "global.h"
 #include "mapa.h"
 #include "scenes.h"
-#define DT 1.0/60
-#define GRAVITY_ACCEL (7 * UNITS_PER_PIXEL)      // units por segundo^2    //7 normally
+#define DT (GetFrameTime())
+#define GRAVITY_ACCEL (7 * UNITS_PER_PIXEL * 60 * DT)      // units por segundo^2    //7 normally
 #define MAX_ENEMY_NUMBER 50
 #define MAX_PROJECTILE_NUMBER MAX_ENEMY_NUMBER
 
@@ -101,3 +101,5 @@ typedef enum {LEFTK, RIGHTK, UPK, DOWNK, SHIFTK} key;
 bool isPressed(key k);
 
 void camera_handling(void);
+extern void close_everything(); // Defing in main.c
+extern bool should_quit; // Also deing in main.c

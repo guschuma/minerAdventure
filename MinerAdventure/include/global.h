@@ -4,7 +4,7 @@
 //#define USE_GLOBAL_CAMERA
 //#define DRAW_HITBOXES
 //#define DEBUG_ACTIVE // Press R to respawn
-#define DONT_RESTART_WHEN_DEATH // Useful when debugging
+//#define DONT_RESTART_WHEN_DEATH // Useful when debugging
 
 #ifdef USE_GLOBAL_CAMERA
 #define CAMERA_ZOOM_FACTOR 1

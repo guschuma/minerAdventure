@@ -377,7 +377,7 @@ void initialize_arrow(Vector2 initial_position){
 }
 // Updates projectile_list
 void update_projectile_positions(){
-	for(int p_index = 0; p_index < enemy_count; p_index++){
+	for(int p_index = 0; p_index < projectile_count; p_index++){
 		if(!(projectile_list[p_index]).is_active) continue;
 		ProjectileObject current_projectile = projectile_list[p_index];
 		update_projectile_position(&(projectile_list[p_index]), false);
@@ -403,10 +403,12 @@ void delete_projectile(int index){
 	projectile_list[projectile_count] = (ProjectileObject){0};
 }
 
-void restart_projectiles(){
-	int index = projectile_count;
-	while(index >= 0) delete_projectile(index--);
-	projectile_count = 0;
+void restart_projectiles(void){
+    projectile_count = 0;
+
+    for(int i = 0; i < MAX_PROJECTILE_NUMBER; i++){
+        projectile_list[i] = (ProjectileObject){0};
+    }
 }
 
 // Draws projectile_list

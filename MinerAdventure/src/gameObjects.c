@@ -362,3 +362,4 @@ void camera_handling(void){
 	centralized_player_position = v_to_pixel_grid(centralized_player_position);
 	move_camera_position_to(centralized_player_position);
 }
+

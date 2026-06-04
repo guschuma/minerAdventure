@@ -15,6 +15,7 @@ Music menu_music;
 Music level_music;
 Music defeat_music;
 
+bool should_quit = false;
 void update_music(SCREENS old_screen);
 void update_gameplay_loop(void);
 void event_handling(void);
@@ -25,11 +26,11 @@ char debug_block; // Only using during debug for level making
 RenderTexture2D pixelated_screen;
 RenderTexture2D pixelated_background;
 int main(void) { 
-	InitWindow(SCREEN_W, SCREEN_H, "Miner Adventure - G. S. F.");
-
 	SetConfigFlags(FLAG_MSAA_4X_HINT); // Colocar isso para evitar ruídos MUITO ALTOs e infrequentes
 	SetAudioStreamBufferSizeDefault(4096);          // e isso 
 	InitAudioDevice();
+
+	InitWindow(SCREEN_W, SCREEN_H, "Miner Adventure - G. S. F.");
 
 	SetTargetFPS(60);
 	printf("PIXEL_PER_UNITS value: %f\n\n", PIXEL_PER_UNITS);
@@ -44,9 +45,10 @@ int main(void) {
 	HideCursor();
 	init_sounds();
 	#ifndef DEBUG_ACTIVE
-	menu_music = LoadMusicStream("assets/musics/menu_song.mp3");
-	level_music = LoadMusicStream("assets/musics/level_song.mp3");
-	defeat_music = LoadMusicStream("assets/musics/defeat.mp3");
+	menu_music = LoadMusicStream("assets/musics/menu_song.wav");
+	level_music = LoadMusicStream("assets/musics/level_song.wav");
+	SetMusicVolume(level_music, 2.0);
+	defeat_music = LoadMusicStream("assets/musics/defeat.wav");
 	#endif
 	current_screen = START_SCREEN;
 	
@@ -54,7 +56,7 @@ int main(void) {
 	pixelated_background = LoadRenderTexture(to_pixel_grid(SCREEN_W * PIXEL_PER_UNITS / CAMERA_ZOOM_FACTOR), to_pixel_grid(SCREEN_H * PIXEL_PER_UNITS / CAMERA_ZOOM_FACTOR));
 	shadows = LoadRenderTexture(to_pixel_grid(SCREEN_W * PIXEL_PER_UNITS / CAMERA_ZOOM_FACTOR), to_pixel_grid(SCREEN_H * PIXEL_PER_UNITS / CAMERA_ZOOM_FACTOR));
 	SCREENS old_screen;
-	while (!WindowShouldClose()) {
+	while (!WindowShouldClose() && !should_quit) {
 		old_screen = current_screen;
 		switch(current_screen){
 		case PAUSE_SCREEN:
@@ -84,12 +86,7 @@ int main(void) {
 		}
 		update_music(old_screen);
 	}
-	UnloadMusicStream(menu_music);   // Unload music stream buffers from RAM
-	UnloadMusicStream(level_music);
-	UnloadMusicStream(defeat_music);
-	unload_sounds();
-    CloseAudioDevice(); 
-	CloseWindow();
+	close_everything();
 
 	return 0;
 }
@@ -265,4 +262,19 @@ void update_music(SCREENS old_screen){
 void restart_music(Music *music){
     StopMusicStream(*music);
     PlayMusicStream(*music);
+}
+
+
+void close_everything(){
+	#ifndef DEBUG_ACTIVE
+	UnloadMusicStream(menu_music);   // Unload music stream buffers from RAM
+	UnloadMusicStream(level_music);
+	UnloadMusicStream(defeat_music);
+	#endif
+	unload_sounds();
+	UnloadRenderTexture(pixelated_screen);
+	UnloadRenderTexture(pixelated_background);
+	UnloadRenderTexture(shadows);
+    CloseAudioDevice(); 
+	CloseWindow();
 }

@@ -439,6 +439,7 @@ void player_was_hit(){
 
 void player_got_life(){
 	level_life_was_taken = true;
+	score += 400;
 	play_sound(LIFE_UP);
 	if(player.health <= 3) player.health++; // Max health player can get is 4
 }

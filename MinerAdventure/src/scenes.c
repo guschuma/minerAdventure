@@ -9,8 +9,8 @@
 
 
 #ifdef DEBUG_ACTIVE
-#define START_MENU_ANIMATION_DURATION 0.1 // in seconds
-#define CUTSCENE_DURATION 0.1       // in seconds
+#define START_MENU_ANIMATION_DURATION 0.001 // in seconds
+#define CUTSCENE_DURATION 0.001       // in seconds
 #else
 #define CUTSCENE_DURATION 1.7       // in seconds 1.7
 #define START_MENU_ANIMATION_DURATION 3 // in seconds 3
@@ -219,7 +219,7 @@ void on_pause_screen(){
 		hook.is_active = false;
 	}
 	if(check_button_click(menu_b)) current_screen = START_SCREEN;
-	if(check_button_click(exit_b)) CloseWindow();
+	if(check_button_click(exit_b)) should_quit = true;
 }
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -424,7 +424,7 @@ void on_start_screen(){
 		current_screen = SCORE_SCREEN;
 		is_on_start_screen = false;
 	}
-	else if(check_button_click(exit_b)) CloseWindow();
+	else if(check_button_click(exit_b)) should_quit = true;
 }
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //												SCORE SCREEN
