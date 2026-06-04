@@ -71,7 +71,7 @@ What each src file does:
 * `gameObjects.c` mostly implements global functions and others that didn't fit in other files  
 * `main.c` is where the main function is located. Also used for scene switching, frame freezing and music.  
 * `player.c` implements player movement, interactions and features, including the grappling hook.  
-* `scenes.c` sets the non-gameplay scenes (menu screen, pause screen, gameplay screen, etc...) and transitions.  
+* `scenes.c` sets the non-gameplay scenes (menu screen, pause screen and defeat screen) and transitions.  
 * `score.c` implements the score leaderboard, which is saved in `placar.bin` already sorted and only with the top 10 scores.   
 * `sounds.c` is where the sounds effects used in the game are located and set up.  
 
