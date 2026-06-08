@@ -49,6 +49,7 @@ int main(void) {
 	level_music = LoadMusicStream("assets/musics/level_song.wav");
 	SetMusicVolume(level_music, 2.0);
 	defeat_music = LoadMusicStream("assets/musics/defeat.wav");
+
 	#endif
 	current_screen = START_SCREEN;
 	
