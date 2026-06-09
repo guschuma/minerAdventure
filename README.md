@@ -13,7 +13,7 @@ It's a simple, Donkey Kong inspired game about a cave explorer going on a danger
 
 * On macOS, just run the command `make run` on the terminal. The game will automatically play from there.
 
-* On Linux, run the command `make run_linux`.  
+* On Linux, switch to the branch "linux_build". Inside MinerAdventure, run the command `make run_linux`.  
 *Note: Previously, an error could occur when opening the game on Linux machines. This might be due to an internal glitch with Raylib opening the .mp3 music files for streaming (which are located in the assets/musics folder).
 See [this post](https://www.reddit.com/r/raylib/comments/1btp10i/raylibs_problem_opening_music_file/).
 I have changed them to .wav, but if the error still occurs, just delete them.*
