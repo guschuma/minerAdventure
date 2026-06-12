@@ -13,7 +13,7 @@ It's a simple, Donkey Kong inspired game about a cave explorer going on a danger
 
 * On macOS, just run the command `make run` on the terminal. The game will automatically play from there.
 
-* On Linux, switch to the branch "linux_build". Inside MinerAdventure, run the command `make run_linux`.  
+* On Linux, go inside minerAdventure and switch to the branch "linux-build" (`git switch linux-build`) if not already on linux build. Inside MinerAdventure, run the command `make run_linux`.  
 
 ### Controls:
 
