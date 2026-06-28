@@ -16,7 +16,6 @@ run: build_osx
 build_linux:
 	$(COMPILER) $(CFILES) $(SOURCE_LIBS) -o bin/build_linux \
 	lib/libraylib.a \
-	-fsanitize=address \
 	-lGL -lm -lX11 -lpthread -ldl -lrt
 
 run_linux: build_linux
