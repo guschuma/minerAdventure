@@ -303,6 +303,7 @@ void on_defeated_screen(){
 		is_on_defeated_screen = false;
 		#ifndef DONT_RESTART_WHEN_DEATH
 		level = 1;
+		read_map(TextFormat("maps/mapa%i.txt", level));
 		#endif
 		current_screen = START_SCREEN;
 		will_go_to_menu = false;
